@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/blueship581/gbcheckup/internal/model"
+
 // RegisterRequest 注册请求。
 type RegisterRequest struct {
 	Phone    string `json:"phone" binding:"required,len=11"`
@@ -95,10 +97,30 @@ type GroupOrderRequest struct {
 	ExamineeCount int  `json:"examinee_count" binding:"gte=1"`
 }
 
+// GroupOrderProgress 团检订单报告进度。
+type GroupOrderProgress = model.GroupOrderProgress
+
+// GroupOrderListItem 团检订单列表项。
+type GroupOrderListItem struct {
+	model.GroupOrder
+	model.GroupOrderProgress
+}
+
+// GroupOrderExaminee 团检订单归集的体检人。
+type GroupOrderExaminee = model.GroupOrderExaminee
+
+// GroupOrderDetail 团检订单详情。
+type GroupOrderDetail struct {
+	model.GroupOrder
+	model.GroupOrderProgress
+	DeliveryMessage string                     `json:"delivery_message"`
+	Examinees       []model.GroupOrderExaminee `json:"examinees"`
+}
+
 // FollowUpRequest 复查跟踪请求。
 type FollowUpRequest struct {
-	Status  string `json:"status" binding:"required,oneof=pending done"`
-	Advice  string `json:"specialist_advice" binding:"max=500"`
+	Status string `json:"status" binding:"required,oneof=pending done"`
+	Advice string `json:"specialist_advice" binding:"max=500"`
 }
 
 // TokenResponse 令牌响应。

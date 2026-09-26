@@ -30,9 +30,9 @@ const (
 
 // RegistrationStatus 登记状态。
 const (
-	RegistrationRegistered = "registered" // 已登记
+	RegistrationRegistered = "registered"  // 已登记
 	RegistrationInProgress = "in_progress" // 进行中
-	RegistrationCompleted  = "completed"  // 已完成
+	RegistrationCompleted  = "completed"   // 已完成
 )
 
 // PackageStatus 套餐状态。
@@ -54,6 +54,12 @@ const (
 	GroupOrderPending   = "pending"
 	GroupOrderConfirmed = "confirmed"
 	GroupOrderDone      = "done"
+)
+
+// ReportDeliveryStatus 报告交付状态。
+const (
+	ReportDeliveryPending   = "pending"
+	ReportDeliveryDelivered = "delivered"
 )
 
 // FollowUpStatus 复查跟踪状态。

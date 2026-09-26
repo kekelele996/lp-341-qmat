@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button, Card, Form, Input, Modal, Select, Space, Table, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { batchImportExaminees, createExaminee, listExaminees } from '../api/examinee';
+import { listEnterprises } from '../api/enterprise';
 import { listPackages } from '../api/package';
 import { createRegistration, listRegistrations, updateRegistrationStatus } from '../api/registration';
-import type { Examinee, Package, Registration } from '../types';
+import type { Enterprise, Examinee, Package, Registration } from '../types';
 import StatusBadge from '../components/common/StatusBadge';
 import EmptyState from '../components/common/EmptyState';
 import { RegistrationStatusLabels } from '../constants/report';
@@ -15,6 +16,7 @@ export default function RegistrationManage() {
   const [items, setItems] = useState<Registration[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
   const [examinees, setExaminees] = useState<Examinee[]>([]);
+  const [enterprises, setEnterprises] = useState<Enterprise[]>([]);
   const [loading, setLoading] = useState(false);
   const { pagination, setTotal, onPageChange } = usePagination(1, 10);
   const total = pagination.total;
@@ -33,6 +35,8 @@ export default function RegistrationManage() {
       setPackages(p.list);
       const e = await listExaminees({ page_size: 100 });
       setExaminees(e.list);
+      const ent = await listEnterprises({ page_size: 100 });
+      setEnterprises(ent.list);
     } finally {
       setLoading(false);
     }
@@ -59,9 +63,9 @@ export default function RegistrationManage() {
     load();
   }
 
-  async function onImport(values: { csv_text: string }) {
-    await batchImportExaminees(values.csv_text);
-    message.success('批量导入成功');
+  async function onImport(values: { enterprise_id: number; csv_text: string }) {
+    await batchImportExaminees(values.csv_text, values.enterprise_id);
+    message.success('团体批量导入成功');
     setImportOpen(false);
     importForm.resetFields();
   }
@@ -101,6 +105,9 @@ export default function RegistrationManage() {
 
       <Modal open={importOpen} title="团体批量导入（姓名,身份证号,手机号,性别,年龄）" onOk={() => importForm.submit()} onCancel={() => setImportOpen(false)} destroyOnClose>
         <Form form={importForm} layout="vertical" onFinish={onImport}>
+          <Form.Item name="enterprise_id" label="所属企业" rules={[{ required: true }]}>
+            <Select options={enterprises.map((e) => ({ value: e.id, label: e.name }))} placeholder="请选择团检企业" />
+          </Form.Item>
           <Form.Item name="csv_text" rules={[{ required: true }]}><Input.TextArea rows={8} placeholder={'张三,110101199001011111,13900000001,male,30\n李四,310101199002022222,13900000002,female,28'} /></Form.Item>
         </Form>
       </Modal>

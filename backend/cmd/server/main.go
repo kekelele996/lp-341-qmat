@@ -108,7 +108,7 @@ func migrateAndSeed(db *gorm.DB, log *slog.Logger) error {
 		return err
 	}
 	if tableCount > 0 {
-		return nil
+		return ensureGroupOrderDeliveryColumn(db)
 	}
 	if err := db.AutoMigrate(
 		&model.User{}, &model.Package{}, &model.PackageItem{}, &model.Examinee{},
@@ -203,4 +203,12 @@ func migrateAndSeed(db *gorm.DB, log *slog.Logger) error {
 	}
 	log.Info(constants.LOG_DB_INITIALIZED, "seed", "ok")
 	return nil
+}
+
+// ensureGroupOrderDeliveryColumn 兼容由旧版 init.sql 创建的数据库，幂等补齐交付时间列。
+func ensureGroupOrderDeliveryColumn(db *gorm.DB) error {
+	if err := db.Exec("ALTER TABLE group_orders ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ").Error; err != nil {
+		return err
+	}
+	return db.Exec("UPDATE group_orders SET delivered_at = created_at WHERE report_delivery_status = 'delivered' AND delivered_at IS NULL").Error
 }

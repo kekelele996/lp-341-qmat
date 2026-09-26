@@ -53,3 +53,14 @@ export const FollowUpStatusLabels: Record<string, string> = {
   pending: '待复查',
   done: '已复查',
 };
+
+export const GroupOrderStatusLabels: Record<string, string> = {
+  pending: '待开始',
+  confirmed: '已确认',
+  done: '已完成',
+};
+
+export const DeliveryStatusLabels: Record<string, string> = {
+  pending: '待交付',
+  delivered: '已交付',
+};

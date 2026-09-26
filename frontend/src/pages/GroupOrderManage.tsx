@@ -1,19 +1,38 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Card, Form, Input, InputNumber, Modal, Select, Space, Table, message } from 'antd';
+import { Button, Card, Descriptions, Drawer, Form, Input, InputNumber, Modal, Popconfirm, Progress, Select, Space, Table, Tag, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { createEnterprise, createGroupOrder, deliverReports, listEnterprises, listGroupOrders } from '../api/enterprise';
+import { createEnterprise, createGroupOrder, deliverReports, getGroupOrder, listEnterprises, listGroupOrders } from '../api/enterprise';
 import { listPackages } from '../api/package';
-import type { Enterprise, GroupOrder, Package } from '../types';
+import type { Enterprise, GroupOrder, GroupOrderDetail, GroupOrderExaminee, Package } from '../types';
 import StatusBadge from '../components/common/StatusBadge';
+import ReportStatusBadge from '../components/common/ReportStatusBadge';
 import EmptyState from '../components/common/EmptyState';
 import { usePagination } from '../hooks/usePagination';
+import { formatDateTime } from '../utils/dateFormat';
+
+function ReportProgress({ order }: { order: GroupOrder }) {
+  const percent = order.required_count > 0 ? Math.round((order.ready_count / order.required_count) * 100) : 0;
+  return (
+    <Space direction="vertical" size={2} style={{ minWidth: 170 }}>
+      <Space size={4} wrap>
+        <Tag>应交付 {order.required_count}</Tag>
+        <Tag color="green">已就绪 {order.ready_count}</Tag>
+        <Tag color={order.pending_report_count > 0 ? 'orange' : 'default'}>待出报告 {order.pending_report_count}</Tag>
+      </Space>
+      <Progress percent={percent} size="small" status={order.pending_report_count > 0 ? 'active' : 'success'} />
+    </Space>
+  );
+}
 
 export default function GroupOrderManage() {
   const [items, setItems] = useState<GroupOrder[]>([]);
   const [enterprises, setEnterprises] = useState<Enterprise[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(false);
+  const [detail, setDetail] = useState<GroupOrderDetail | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
   const { pagination, setTotal, onPageChange } = usePagination(1, 10);
   const total = pagination.total;
   const [orderOpen, setOrderOpen] = useState(false);
@@ -54,23 +73,56 @@ export default function GroupOrderManage() {
     load();
   }
 
+  async function onView(order: GroupOrder) {
+    setDetailOpen(true);
+    setDetailLoading(true);
+    try {
+      setDetail(await getGroupOrder(order.id));
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
   async function onDeliver(order: GroupOrder) {
-    await deliverReports(order.id);
-    message.success('报告已批量交付');
+    const result = await deliverReports(order.id);
+    message.success(result.delivery_message || `全部 ${result.required_count} 人的报告已发布并完成交付`);
+    if (detail?.id === result.id) setDetail(result);
     load();
   }
 
   const columns: ColumnsType<GroupOrder> = [
     { title: '企业', render: (_, r) => r.enterprise?.name ?? '-' },
     { title: '套餐', render: (_, r) => r.package?.name ?? '-' },
-    { title: '人数', dataIndex: 'examinee_count' },
-    { title: '订单状态', dataIndex: 'status', render: (v) => <StatusBadge status={v} type="order" /> },
-    { title: '交付状态', dataIndex: 'report_delivery_status', render: (v) => <StatusBadge status={v} type="delivery" /> },
-    { title: '操作', render: (_, r) => (
-      <Space>
-        {r.report_delivery_status !== 'delivered' && <a onClick={() => onDeliver(r)}>批量交付报告</a>}
-      </Space>
-    ) },
+    { title: '合同人数', dataIndex: 'examinee_count', width: 90 },
+    { title: '报告进度', width: 230, render: (_, r) => <ReportProgress order={r} /> },
+    { title: '订单状态', dataIndex: 'status', width: 100, render: (v) => <StatusBadge status={v} type="order" /> },
+    { title: '交付状态', dataIndex: 'report_delivery_status', width: 100, render: (v) => <StatusBadge status={v} type="delivery" /> },
+    { title: '交付时间', dataIndex: 'delivered_at', width: 160, render: (v) => formatDateTime(v) },
+    {
+      title: '操作',
+      width: 160,
+      render: (_, r) => (
+        <Space>
+          <a onClick={() => onView(r)}>详情</a>
+          <Popconfirm
+            title={r.report_delivery_status === 'delivered' ? '该订单已交付，是否再次查看交付结果？' : '确认交付全部报告？'}
+            description={r.pending_report_count > 0 ? `还差 ${r.pending_report_count} 人报告发布，交付将失败。` : '只有全部报告发布后才能交付。'}
+            onConfirm={() => onDeliver(r)}
+          >
+            <a>{r.report_delivery_status === 'delivered' ? '再次交付' : '批量交付报告'}</a>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  const examineeColumns: ColumnsType<GroupOrderExaminee> = [
+    { title: '体检人', dataIndex: 'name' },
+    { title: '手机号', dataIndex: 'phone', render: (v) => v || '-' },
+    { title: '导检单号', dataIndex: 'guide_no', render: (v) => v || '-' },
+    { title: '报告编号', dataIndex: 'report_no', render: (v) => v || '-' },
+    { title: '报告状态', dataIndex: 'report_status', render: (v) => v ? <ReportStatusBadge status={v} /> : <Tag>待出报告</Tag> },
+    { title: '就绪', dataIndex: 'ready', render: (v) => v ? <Tag color="green">已就绪</Tag> : <Tag color="orange">待出报告</Tag> },
   ];
 
   return (
@@ -84,6 +136,54 @@ export default function GroupOrderManage() {
       <Card size="small" title="团检订单列表">
         <Table rowKey="id" columns={columns} dataSource={items} loading={loading} pagination={{ current: pagination.page, pageSize: pagination.pageSize, total, onChange: onPageChange }} locale={{ emptyText: <EmptyState /> }} />
       </Card>
+
+      <Drawer
+        title={detail ? `订单详情 #${detail.id}` : '订单详情'}
+        width={860}
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        destroyOnClose
+        extra={detail && (
+          <Popconfirm
+            title={detail.report_delivery_status === 'delivered' ? '该订单已交付，是否再次查看交付结果？' : '确认交付全部报告？'}
+            description={detail.pending_report_count > 0 ? `还差 ${detail.pending_report_count} 人报告发布，交付将失败。` : undefined}
+            onConfirm={() => onDeliver(detail)}
+          >
+            <Button type={detail.report_delivery_status === 'delivered' ? 'default' : 'primary'}>
+              {detail.report_delivery_status === 'delivered' ? '再次交付' : '批量交付报告'}
+            </Button>
+          </Popconfirm>
+        )}
+      >
+        {detail && (
+          <Space direction="vertical" size={16} style={{ width: '100%' }}>
+            <Descriptions bordered size="small" column={2}>
+              <Descriptions.Item label="企业">{detail.enterprise?.name ?? '-'}</Descriptions.Item>
+              <Descriptions.Item label="套餐">{detail.package?.name ?? '-'}</Descriptions.Item>
+              <Descriptions.Item label="合同人数">{detail.examinee_count}</Descriptions.Item>
+              <Descriptions.Item label="已登记/应交付">{detail.required_count}</Descriptions.Item>
+              <Descriptions.Item label="已就绪">{detail.ready_count}</Descriptions.Item>
+              <Descriptions.Item label="待出报告">{detail.pending_report_count}</Descriptions.Item>
+              <Descriptions.Item label="订单状态"><StatusBadge status={detail.status} type="order" /></Descriptions.Item>
+              <Descriptions.Item label="交付状态"><StatusBadge status={detail.report_delivery_status} type="delivery" /></Descriptions.Item>
+              <Descriptions.Item label="创建时间">{formatDateTime(detail.created_at)}</Descriptions.Item>
+              <Descriptions.Item label="交付时间">{formatDateTime(detail.delivered_at)}</Descriptions.Item>
+            </Descriptions>
+            <Card size="small" title="报告发布进度">
+              <ReportProgress order={detail} />
+            </Card>
+            <Table
+              rowKey="examinee_id"
+              size="small"
+              columns={examineeColumns}
+              dataSource={detail.examinees}
+              loading={detailLoading}
+              pagination={false}
+              locale={{ emptyText: <EmptyState description="该企业与套餐下暂无已登记体检人" /> }}
+            />
+          </Space>
+        )}
+      </Drawer>
 
       <Modal open={orderOpen} title="创建团检订单" onOk={() => orderForm.submit()} onCancel={() => setOrderOpen(false)} destroyOnClose>
         <Form form={orderForm} layout="vertical" onFinish={onCreateOrder}>

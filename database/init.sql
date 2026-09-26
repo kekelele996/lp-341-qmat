@@ -119,7 +119,8 @@ CREATE TABLE IF NOT EXISTS group_orders (
     examinee_count INT DEFAULT 0,
     status VARCHAR(20) DEFAULT 'pending',
     report_delivery_status VARCHAR(20) DEFAULT 'pending',
-    created_at TIMESTAMPTZ DEFAULT now()
+    created_at TIMESTAMPTZ DEFAULT now(),
+    delivered_at TIMESTAMPTZ
 );
 
 -- 种子数据（密码 bcrypt：admin123/doctor123/front123/examinee123）

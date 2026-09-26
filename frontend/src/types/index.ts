@@ -99,15 +99,42 @@ export interface Enterprise {
   address: string;
 }
 
-export interface GroupOrder {
+export interface GroupOrderProgress {
+  required_count: number;
+  ready_count: number;
+  pending_report_count: number;
+}
+
+export interface GroupOrderExaminee {
+  examinee_id: number;
+  name: string;
+  phone: string;
+  gender: string;
+  age: number;
+  registration_id?: number | null;
+  guide_no: string;
+  report_id?: number | null;
+  report_no: string;
+  report_status: string;
+  ready: boolean;
+}
+
+export interface GroupOrder extends GroupOrderProgress {
   id: number;
   enterprise_id: number;
   package_id: number;
   examinee_count: number;
   status: string;
   report_delivery_status: string;
+  created_at: string;
+  delivered_at?: string | null;
   enterprise?: Enterprise;
   package?: Package;
+}
+
+export interface GroupOrderDetail extends GroupOrder {
+  delivery_message?: string;
+  examinees: GroupOrderExaminee[];
 }
 
 export interface PageData<T> {
