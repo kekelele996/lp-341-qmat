@@ -30,6 +30,7 @@ const (
 	LOG_ENTERPRISE_CREATED          = "Enterprise created"
 	LOG_GROUP_ORDER_CREATED         = "GroupOrder created"
 	LOG_GROUP_ORDER_DELIVERED       = "GroupOrder report delivered"
+	LOG_GROUP_ORDER_DELIVER_FAILED  = "GroupOrder deliver failed"
 	LOG_STATS_DASHBOARD             = "Stats dashboard generated"
 	LOG_FILE_UPLOADED               = "File uploaded"
 	LOG_RATE_LIMITED                = "Request rate limited"

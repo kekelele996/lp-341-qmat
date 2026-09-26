@@ -76,6 +76,17 @@ func (h *EnterpriseHandler) ListOrders(c *gin.Context) {
 	util.OK(c, util.PageData{List: items, Total: total, Page: page, Size: pageSize})
 }
 
+// GetOrder 团检订单详情（进度 + 归集体检人报告状态）。
+func (h *EnterpriseHandler) GetOrder(c *gin.Context) {
+	id := parseUint(c.Param("id"))
+	order, members, err := h.svc.GetOrderDetail(c.Request.Context(), id)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	util.OK(c, dto.GroupOrderDetailResponse{Order: order, Members: members})
+}
+
 // DeliverReports 报告批量交付。
 func (h *EnterpriseHandler) DeliverReports(c *gin.Context) {
 	id := parseUint(c.Param("id"))

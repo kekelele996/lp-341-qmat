@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS group_orders (
     examinee_count INT DEFAULT 0,
     status VARCHAR(20) DEFAULT 'pending',
     report_delivery_status VARCHAR(20) DEFAULT 'pending',
+    delivered_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 

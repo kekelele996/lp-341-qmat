@@ -103,6 +103,10 @@ func main() {
 
 // migrateAndSeed 自动迁移并注入种子数据；init.sql 已建表则跳过。
 func migrateAndSeed(db *gorm.DB, log *slog.Logger) error {
+	// GroupOrder 始终迁移：为已存在的库补齐 delivered_at 等新增列。
+	if err := db.AutoMigrate(&model.GroupOrder{}); err != nil {
+		return err
+	}
 	var tableCount int64
 	if err := db.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='packages'").Scan(&tableCount).Error; err != nil {
 		return err

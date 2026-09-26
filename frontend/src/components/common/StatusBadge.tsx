@@ -1,5 +1,5 @@
 import { Tag } from 'antd';
-import { RegistrationStatusLabels } from '../../constants/report';
+import { DeliveryStatusLabels, GroupOrderStatusLabels, RegistrationStatusLabels } from '../../constants/report';
 
 interface Props {
   status?: string;
@@ -13,10 +13,17 @@ const map: Record<string, Record<string, string>> = {
   delivery: { pending: 'orange', delivered: 'green' },
 };
 
+const labelMap: Record<string, Record<string, string>> = {
+  registration: RegistrationStatusLabels,
+  order: GroupOrderStatusLabels,
+  delivery: DeliveryStatusLabels,
+};
+
 // 看板/套餐/登记/团检 共用状态徽标
 export default function StatusBadge({ status, type = 'registration' }: Props) {
   const m = map[type] ?? {};
   const color = m[status ?? ''] ?? 'default';
-  const label = type === 'registration' ? (RegistrationStatusLabels[status ?? ''] ?? status ?? '-') : (status ?? '-');
+  const labels = labelMap[type] ?? {};
+  const label = labels[status ?? ''] ?? status ?? '-';
   return <Tag color={color}>{label}</Tag>;
 }

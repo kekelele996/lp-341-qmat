@@ -13,5 +13,6 @@ func registerEnterpriseRoutes(g *gin.RouterGroup, h Handlers) {
 	ent.GET("", h.Enterprise.ListEnterprises)
 	ent.POST("/orders", h.Enterprise.CreateOrder)
 	ent.GET("/orders", h.Enterprise.ListOrders)
+	ent.GET("/orders/:id", h.Enterprise.GetOrder)
 	ent.POST("/orders/:id/deliver", h.Enterprise.DeliverReports)
 }

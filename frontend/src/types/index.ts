@@ -106,8 +106,29 @@ export interface GroupOrder {
   examinee_count: number;
   status: string;
   report_delivery_status: string;
+  delivered_at?: string | null;
+  expected_count?: number;
+  ready_count?: number;
+  pending_count?: number;
   enterprise?: Enterprise;
   package?: Package;
+}
+
+export interface GroupOrderMember {
+  examinee_id: number;
+  examinee_name: string;
+  id_card_no: string;
+  registration_id: number;
+  guide_no: string;
+  registration_status: string;
+  report_id?: number | null;
+  report_no: string;
+  report_status: string;
+}
+
+export interface GroupOrderDetail {
+  order: GroupOrder;
+  members: GroupOrderMember[];
 }
 
 export interface PageData<T> {

@@ -56,6 +56,12 @@ const (
 	GroupOrderDone      = "done"
 )
 
+// GroupOrderDeliveryStatus 团检报告交付状态。
+const (
+	GroupOrderDeliveryPending   = "pending"   // 待交付
+	GroupOrderDeliveryDelivered = "delivered" // 已交付
+)
+
 // FollowUpStatus 复查跟踪状态。
 const (
 	FollowUpPending = "pending"

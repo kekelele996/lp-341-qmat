@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/blueship581/gbcheckup/internal/model"
+
 // RegisterRequest 注册请求。
 type RegisterRequest struct {
 	Phone    string `json:"phone" binding:"required,len=11"`
@@ -93,6 +95,12 @@ type GroupOrderRequest struct {
 	EnterpriseID  uint `json:"enterprise_id" binding:"required"`
 	PackageID     uint `json:"package_id" binding:"required"`
 	ExamineeCount int  `json:"examinee_count" binding:"gte=1"`
+}
+
+// GroupOrderDetailResponse 团检订单详情：订单进度 + 归集体检人报告状态。
+type GroupOrderDetailResponse struct {
+	Order   *model.GroupOrder         `json:"order"`
+	Members []model.GroupOrderMember  `json:"members"`
 }
 
 // FollowUpRequest 复查跟踪请求。

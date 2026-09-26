@@ -147,8 +147,9 @@ lp-341/
 | POST | `/api/v1/enterprises` | admin/front_desk | 创建团检企业 |
 | GET | `/api/v1/enterprises` | admin/front_desk | 企业列表 |
 | POST | `/api/v1/enterprises/orders` | admin/front_desk | 创建团检订单 |
-| GET | `/api/v1/enterprises/orders` | admin/front_desk | 团检订单列表 |
-| POST | `/api/v1/enterprises/orders/:id/deliver` | admin/front_desk | 报告批量交付 |
+| GET | `/api/v1/enterprises/orders` | admin/front_desk | 团检订单列表（含应交付/已就绪/待出报告进度） |
+| GET | `/api/v1/enterprises/orders/:id` | admin/front_desk | 团检订单详情（按企业+套餐归集体检人报告状态） |
+| POST | `/api/v1/enterprises/orders/:id/deliver` | admin/front_desk | 报告批量交付（报告未发齐则失败并提示还差几人，重复交付幂等） |
 | GET | `/api/v1/stats/dashboard` | admin | 运营统计 |
 
 > 除 `/healthz`、注册/登录外，其余接口需携带 `Authorization: Bearer <JWT>`；所有响应头均携带 `X-Request-ID`，响应体统一为 `{code, message, data}`。

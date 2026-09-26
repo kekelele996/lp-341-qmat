@@ -24,6 +24,8 @@ const (
 	MsgRegNotFound      = "体检登记（Registration）不存在"
 	MsgResultNotFound   = "检查结果（ExamResult）不存在"
 	MsgReportNotFound   = "体检报告（Report）不存在"
+	MsgGroupOrderNotFound = "团检订单（GroupOrder）不存在"
+	MsgGroupOrderNotReady = "团检订单（GroupOrder）报告未发齐"
 	MsgReportStatusInvalid = "报告状态（Report.status）流转不合法"
 	MsgAbnormalLevelInvalid = "异常等级（AbnormalLevel）不合法"
 	MsgInternalError    = "服务内部错误"
